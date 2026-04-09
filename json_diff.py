@@ -3,8 +3,9 @@
 JSON Diff Tool — Highlights differences between two JSON inputs.
 
 Usage:
-    python json_diff.py file1.json file2.json
-    python json_diff.py --json1 '{"a":1}' --json2 '{"a":2}'
+    python json_diff.py                              # interactive mode
+    python json_diff.py file1.json file2.json        # file mode
+    python json_diff.py --json1 '{"a":1}' --json2 '{"a":2}'  # inline mode
 """
 
 import argparse
@@ -174,6 +175,56 @@ def load_json(source: str) -> Any:
         sys.exit(1)
 
 
+def read_json_interactively(label: str) -> Any:
+    """Prompt the user to enter JSON interactively, supporting multi-line input."""
+    print(f"\n{Colors.BOLD}{Colors.CYAN}Enter {label} JSON{Colors.RESET}")
+    print(f"{Colors.DIM}(paste your JSON, then press Enter on an empty line to finish){Colors.RESET}")
+
+    lines = []
+    while True:
+        try:
+            line = input()
+        except EOFError:
+            break
+        if line.strip() == "" and lines:
+            break
+        lines.append(line)
+
+    raw = "\n".join(lines).strip()
+    if not raw:
+        print("Error: No JSON provided.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON — {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def interactive_mode() -> None:
+    """Run the tool interactively, prompting the user for JSON inputs."""
+    print(f"\n{Colors.BOLD}{'═' * 50}{Colors.RESET}")
+    print(f"{Colors.BOLD}{Colors.CYAN}  JSON Diff Tool — Interactive Mode{Colors.RESET}")
+    print(f"{Colors.BOLD}{'═' * 50}{Colors.RESET}")
+
+    obj1 = read_json_interactively("first")
+    obj2 = read_json_interactively("second")
+
+    diffs = diff_json(obj1, obj2)
+    print_diff(diffs)
+
+    # Ask if the user wants to compare again
+    print(f"{Colors.DIM}Compare another pair? (y/n): {Colors.RESET}", end="")
+    try:
+        answer = input().strip().lower()
+    except EOFError:
+        answer = "n"
+
+    if answer in ("y", "yes"):
+        interactive_mode()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Highlight differences between two JSON inputs."
@@ -195,8 +246,18 @@ def main() -> None:
         action="store_true",
         help="Output diff as machine-readable JSON.",
     )
+    parser.add_argument(
+        "-i", "--interactive",
+        action="store_true",
+        help="Run in interactive mode (prompt for JSON inputs).",
+    )
 
     args = parser.parse_args()
+
+    # Interactive mode: no args provided or --interactive flag
+    if args.interactive or (not args.json1 and not args.json2 and len(args.files) == 0):
+        interactive_mode()
+        return
 
     # Determine sources
     if args.json1 and args.json2:
