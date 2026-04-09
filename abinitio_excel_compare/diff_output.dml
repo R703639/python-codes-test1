@@ -1,0 +1,11 @@
+// DML Layout for Diff Output
+// Each record represents a row-level difference between the two tabs
+
+type diff_output_record_type =
+record
+  string("\n") key_column;        // Key value identifying the row
+  string("\n") diff_status;       // "ADDED" | "REMOVED" | "CHANGED"
+  string("\n") changed_columns;   // Comma-separated list of columns that differ
+  string("\n") tab1_values;       // Pipe-separated values from Tab 1 (empty if ADDED)
+  string("\n") tab2_values;       // Pipe-separated values from Tab 2 (empty if REMOVED)
+end;

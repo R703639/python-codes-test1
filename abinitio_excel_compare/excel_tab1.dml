@@ -1,0 +1,12 @@
+// DML Layout for Excel Tab 1 (Sheet1)
+// Adjust field names and types to match your actual Excel columns
+
+type excel_tab1_record_type =
+record
+  string("\n") key_column;        // Primary key column used for matching rows
+  string("\n") col_a;             // Column A — adjust name to your schema
+  string("\n") col_b;             // Column B
+  string("\n") col_c;             // Column C
+  string("\n") col_d;             // Column D
+  string("\n") col_e;             // Column E
+end;
