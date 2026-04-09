@@ -163,10 +163,11 @@ def load_json(source: str) -> Any:
     try:
         with open(source) as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, IsADirectoryError):
         pass
-    except IsADirectoryError:
-        pass
+    except json.JSONDecodeError as e:
+        print(f"Error: File '{source}' contains invalid JSON — {e}", file=sys.stderr)
+        sys.exit(1)
 
     try:
         return json.loads(source)
