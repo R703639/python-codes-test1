@@ -1,0 +1,12 @@
+// DML Layout for Excel Tab 2 (Sheet2)
+// Must have the same structure as Tab 1 for row-by-row comparison
+
+type excel_tab2_record_type =
+record
+  string("\n") key_column;        // Primary key column used for matching rows
+  string("\n") col_a;             // Column A — adjust name to your schema
+  string("\n") col_b;             // Column B
+  string("\n") col_c;             // Column C
+  string("\n") col_d;             // Column D
+  string("\n") col_e;             // Column E
+end;

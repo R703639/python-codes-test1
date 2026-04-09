@@ -1,0 +1,98 @@
+// ============================================================
+// Ab Initio Transform: Row-by-Row Comparison of Two Excel Tabs
+// ============================================================
+//
+// This transform is used inside a Join component.
+// Input ports:
+//   in0 = Tab 1 records (sorted by key_column)
+//   in1 = Tab 2 records (sorted by key_column)
+// Output port:
+//   out = diff_output records
+//
+// Join type: Full Outer Join on key_column
+// ============================================================
+
+out :: begin
+
+  // Determine diff status
+  if (is_defined(in0.key_column) && !is_defined(in1.key_column)) begin
+    // Row exists in Tab 1 but not in Tab 2 → REMOVED
+    out.key_column      = in0.key_column;
+    out.diff_status     = "REMOVED";
+    out.changed_columns = "";
+    out.tab1_values     = string_concat(
+                            in0.col_a, "|",
+                            in0.col_b, "|",
+                            in0.col_c, "|",
+                            in0.col_d, "|",
+                            in0.col_e
+                          );
+    out.tab2_values     = "";
+
+  end else if (!is_defined(in0.key_column) && is_defined(in1.key_column)) begin
+    // Row exists in Tab 2 but not in Tab 1 → ADDED
+    out.key_column      = in1.key_column;
+    out.diff_status     = "ADDED";
+    out.changed_columns = "";
+    out.tab1_values     = "";
+    out.tab2_values     = string_concat(
+                            in1.col_a, "|",
+                            in1.col_b, "|",
+                            in1.col_c, "|",
+                            in1.col_d, "|",
+                            in1.col_e
+                          );
+
+  end else begin
+    // Row exists in both tabs → check for changes
+    let string("") changed_cols;
+    let int(0) has_changes;
+
+    if (in0.col_a != in1.col_a) begin
+      changed_cols = string_concat(changed_cols, "col_a,");
+      has_changes = 1;
+    end
+    if (in0.col_b != in1.col_b) begin
+      changed_cols = string_concat(changed_cols, "col_b,");
+      has_changes = 1;
+    end
+    if (in0.col_c != in1.col_c) begin
+      changed_cols = string_concat(changed_cols, "col_c,");
+      has_changes = 1;
+    end
+    if (in0.col_d != in1.col_d) begin
+      changed_cols = string_concat(changed_cols, "col_d,");
+      has_changes = 1;
+    end
+    if (in0.col_e != in1.col_e) begin
+      changed_cols = string_concat(changed_cols, "col_e,");
+      has_changes = 1;
+    end
+
+    if (has_changes == 1) begin
+      out.key_column      = in0.key_column;
+      out.diff_status     = "CHANGED";
+      // Remove trailing comma
+      out.changed_columns = string_substring(changed_cols, 0, string_length(changed_cols) - 1);
+      out.tab1_values     = string_concat(
+                              in0.col_a, "|",
+                              in0.col_b, "|",
+                              in0.col_c, "|",
+                              in0.col_d, "|",
+                              in0.col_e
+                            );
+      out.tab2_values     = string_concat(
+                              in1.col_a, "|",
+                              in1.col_b, "|",
+                              in1.col_c, "|",
+                              in1.col_d, "|",
+                              in1.col_e
+                            );
+    end else begin
+      // Rows are identical — skip (don't output)
+      out :: abort;
+    end
+
+  end
+
+end
